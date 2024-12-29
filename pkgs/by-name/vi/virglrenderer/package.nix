@@ -13,6 +13,10 @@
   libgbm,
   vaapiSupport ? true,
   libva,
+  enableVenus ? true,
+  vulkan-headers,
+  vulkan-loader,
+  enableMiniGBMAllocation ? true,
   gitUpdater,
 }:
 
@@ -27,23 +31,28 @@ stdenv.mkDerivation rec {
 
   separateDebugInfo = true;
 
-  buildInputs = [
-    libGLU
-    libepoxy
-    libX11
-    libdrm
-    libgbm
-  ] ++ lib.optionals vaapiSupport [ libva ];
+  buildInputs =
+    [
+      libGLU
+      libepoxy
+      libX11
+      libdrm
+      libgbm
+    ]
+    ++ lib.optionals vaapiSupport [ libva ]
+    ++ lib.optionals enableVenus [ vulkan-loader ];
 
   nativeBuildInputs = [
     meson
     ninja
     pkg-config
     python3
-  ];
+  ] ++ lib.optionals enableVenus [ vulkan-headers ];
 
   mesonFlags = [
     (lib.mesonBool "video" vaapiSupport)
+    (lib.mesonBool "venus" enableVenus)
+    (lib.mesonBool "minigbm_allocation" enableMiniGBMAllocation)
   ];
 
   passthru = {
